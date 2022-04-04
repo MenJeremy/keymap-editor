@@ -1,7 +1,7 @@
 const childProcess = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const { parseKeymap } = require('./keymap')
+const { parseKeymap, parseMacro } = require('./keymap')
 
 const ZMK_PATH = path.join(__dirname, '..', '..', '..', 'zmk-config')
 const KEYBOARD = 'dactyl'
@@ -14,6 +14,9 @@ const EMPTY_KEYMAP = {
   layers: [[]]
 }
 
+const EMPTY_MACRO = {
+}
+
 function loadBehaviors() {
   return JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'zmk-behaviors.json')))
 }
@@ -24,7 +27,8 @@ function loadKeycodes() {
 
 function loadLayout (layout = 'LAYOUT') {
   const layoutPath = path.join(ZMK_PATH, 'config', 'info.json')
-  return JSON.parse(fs.readFileSync(layoutPath)).layouts[layout].layout
+  var layout = JSON.parse(fs.readFileSync(layoutPath)).layouts[layout].layout
+  return layout;
 }
 
 function loadKeymap () {
@@ -33,7 +37,17 @@ function loadKeymap () {
     ? JSON.parse(fs.readFileSync(keymapPath))
     : EMPTY_KEYMAP
 
-  return parseKeymap(keymapContent)
+  var keymap = parseKeymap(keymapContent)
+  return keymap
+}
+
+function loadMacros () {
+  const macroPath = path.join(ZMK_PATH, 'config', 'macros.dtsi')
+  const macroContent = fs.existsSync(macroPath)
+     ? fs.readFileSync(macroPath, {encoding:'utf8'})
+     : EMPTY_MACRO
+    
+  return parseMacro(macroContent)
 }
 
 function findKeymapFile () {
@@ -62,5 +76,6 @@ module.exports = {
   loadKeycodes,
   loadLayout,
   loadKeymap,
+  loadMacros,
   exportKeymap
 }

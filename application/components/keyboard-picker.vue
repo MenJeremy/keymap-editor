@@ -19,7 +19,7 @@ import compact from 'lodash/compact'
 
 import * as config from '../config'
 import { loadLayout } from '../layout.js'
-import { loadKeymap } from '../keymap.js'
+import { loadKeymap, loadMacros } from '../keymap.js'
 
 import GithubPicker from './github/picker.vue'
 import Selector from './selector.vue'
@@ -62,23 +62,24 @@ export default {
   methods: {
     async fetchLocalKeyboard() {
       const { source } = this
-      const [layout, keymap] = await Promise.all([
+      const [layout, keymap, macros] = await Promise.all([
         loadLayout(),
-        loadKeymap()
+        loadKeymap(),
+        loadMacros()
       ])
 
-      this.handleKeyboardSelected({ source, layout, keymap })
+      this.handleKeyboardSelected({ source, layout, keymap, macros })
     },
     handleKeyboardSelected(event) {
       const { source } = this
-      const { layout, keymap, ...rest } = event
+      const { layout, keymap, macros, ...rest } = event
 
       const layerNames = keymap.layer_names || keymap.layers.map((_, i) => `Layer ${i}`)
       Object.assign(keymap, {
         layer_names: layerNames
       })
 
-      this.$emit('select', { source, layout, keymap, ...rest })
+      this.$emit('select', { source, layout, keymap, macros, ...rest })
     }
   }
 }

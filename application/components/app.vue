@@ -7,13 +7,18 @@ import Spinner from './spinner.vue'
 
 import * as config from '../config'
 import github from './github/api'
+import MacroDialog from './macro-dialog.vue'
+import Modal from './modal.vue'
+import pick from 'lodash/pick'
 
 export default {
   components: {
     keymap: Keymap,
     KeyboardPicker,
     Initialize,
-    Spinner
+    Spinner,
+    Modal, 
+    MacroDialog
   },
   data() {
     return {
@@ -22,18 +27,21 @@ export default {
       sourceOther: null,
       layout: [],
       keymap: {},
+      macros: [],
       editingKeymap: {},
       saving: false,
       terminalOpen: false,
-      socket: null
+      socket: null,
+      macroEdit: null
     }
   },
   methods: {
-    handleKeyboardSelected({ source, layout, keymap, ...other }) {
+    handleKeyboardSelected({ source, layout, keymap, macros, ...other }) {
       this.source = source
       this.sourceOther = other
       this.layout.splice(0, this.layout.length, ...layout)
       Object.assign(this.keymap, keymap)
+      Object.assign(this.macros, macros)
       this.editingKeymap = {}
     },
     handleUpdateKeymap(keymap) {
@@ -56,7 +64,27 @@ export default {
         },
         body: JSON.stringify(this.editingKeymap)
       })
+    },
+    openMacroList(event) {
+      this.macroEdit = pick(event, ['target', 'key', 'label', 'param'])
+      this.macroEdit.targets = this.macros
+    },
+    createPromptMessage(param) {
+      const promptMapping = {
+        layer: 'Select layer',
+        mod: 'Select modifier',
+        behaviour: 'Select behaviour',
+        command: 'Select command',
+        keycode: 'Select key macro or create a new one'
+      }
+      
+      // if (param.name) {
+      //   return `Select ${param.name}`
+      // }
+
+      return promptMapping[param] || promptMapping.keycode
     }
+
   }
 }
 </script>
@@ -72,6 +100,11 @@ export default {
         @update="handleUpdateKeymap"
       />
       <div id="actions">
+        <button
+          v-text="`Edit Macros`"
+          id="macroList"
+          @click="openMacroList"
+        />
         <button
           v-if="source === 'local'"
           v-text="`Save Local`"
@@ -90,6 +123,19 @@ export default {
           <template v-else>Commit Changes</template>
           <spinner v-if="saving" />
         </button>
+       
+        <modal v-if="macroEdit">
+          <macro-dialog
+            :target="macroEdit.target"
+            :value="macroEdit.label"
+            :param="macroEdit.param"
+            :choices="macroEdit.targets"
+            :prompt="createPromptMessage(macroEdit.param)"
+            searchKey="label"
+            @select="handleSelectValue"
+            @cancel="macroEdit = null"
+          />
+        </modal>
       </div>
     </template>
 

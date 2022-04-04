@@ -19,7 +19,7 @@ function init (app) {
     })
   }
 
-  childProcess.execFile('npm', ['run', 'build-watch'], opts, err => {
+  childProcess.execFile(/^win/.test(process.platform) ? 'npm.cmd' : 'npm', ['run', 'build-watch'], opts, err => {
     console.error(err)
     console.error('Application serving failed')
     process.exit(1)

@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "cd application && npm install",
     "start": "node index.js",
-    "dev": "ENABLE_DEV_SERVER=true node index.js",
+    "dev": "cross-env ENABLE_DEV_SERVER=true node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -23,5 +23,8 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

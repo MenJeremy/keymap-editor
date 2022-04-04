@@ -17,6 +17,11 @@ export function loadKeymap() {
     .then(response => response.json())
 }
 
+export function loadMacros() {
+  return fetch(`${config.apiBaseUrl}/macros`)
+    .then(response => response.json())
+}
+
 export function loadLayout() {
   return fetch(`${config.apiBaseUrl}/layout`)
     .then(response => response.json())
