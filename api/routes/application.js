@@ -14,7 +14,7 @@ function init (app) {
       ENABLE_LOCAL: true,
       ENABLE_GITHUB: true,
       GITHUB_APP_NAME: process.env.GITHUB_APP_NAME,
-      API_BASE_URL: 'http://localhost:8080',
+      API_BASE_URL: 'https://keymap.herokuapp.com/',//'http://localhost:8080',
       APP_BASE_URL: 'http://localhost'
     })
   }
