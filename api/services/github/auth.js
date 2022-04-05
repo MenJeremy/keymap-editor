@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 
 const api = require('./api')
 
-const pemPath = path.join(__dirname, '..', '..', '..', 'private-key.pem')
+const pemPath = path.join(__dirname, '..', '..', '..', '')//'private-key.pem')
 const privateKey = process.env.GITHUB_APP_PRIVATE_KEY || fs.readFileSync(pemPath)
 
 function createAppToken () {
