@@ -7,7 +7,7 @@
     "build-watch": "webpack build --mode development --watch",
     "build": "webpack build --mode production",
     "prebuild": "npm run clean",
-    "clean": "rm -rf dist"
+    "clean": "del dist"
   },
   "keywords": [],
   "author": "",

@@ -168,7 +168,7 @@ export default {
       </li>
     </ul>
     <div>
-      <textarea v-text="selectedMacro" class="macrosText" disabled>       
+      <textarea v-model="selectedMacro" class="macrosText" disabled>  
       </textarea>
     </div>
     <div

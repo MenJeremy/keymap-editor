@@ -33,11 +33,11 @@ module.exports = {
   },
   plugins: [
     new webpack.EnvironmentPlugin({
-      ENABLE_LOCAL: false,
-      ENABLE_GITHUB: false,
-      GITHUB_APP_NAME: null,
+      ENABLE_LOCAL: true,
+      ENABLE_GITHUB: true,
+      GITHUB_APP_NAME: 'Adv360Pro',
       API_BASE_URL: 'http://localhost:8080',
-      APP_BASE_URL: 'http://localhost:8080/application'
+      APP_BASE_URL: 'http://localhost'
     }),
     new HtmlWebpackPlugin({ template: 'index.html' }),
     new VueLoaderPlugin()

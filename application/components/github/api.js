@@ -39,6 +39,7 @@ export class API extends EventEmitter {
   }
 
   async init() {
+    
     if (this.initialized) {
       return
     }

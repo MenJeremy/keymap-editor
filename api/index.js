@@ -11,7 +11,8 @@ const app = express()
 
 app.use(bodyParser.json())
 app.use(cors({
-  origin: 'https://polarityworks.github.io'
+  // origin: 'https://polarityworks.github.io'
+  oring: 'http://localhost:8080'
 }))
 
 if (process.env.ENABLE_DEV_SERVER) {

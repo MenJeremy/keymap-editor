@@ -15,7 +15,7 @@ function init (app) {
       ENABLE_GITHUB: true,
       GITHUB_APP_NAME: process.env.GITHUB_APP_NAME,
       API_BASE_URL: 'http://localhost:8080',
-      APP_BASE_URL: 'http://localhost:8080/application'
+      APP_BASE_URL: 'http://localhost'
     })
   }
 
