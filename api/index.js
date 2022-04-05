@@ -13,7 +13,7 @@ app.use(bodyParser.json())
 app.use(cors({
   // origin: 'https://polarityworks.github.io'
   //origin: 'http://localhost:8080'
-  origin: 'http://localhost'
+  origin: 'https://menjeremy.github.io/keymapapp'//'http://localhost'
 }))
 
 if (process.env.ENABLE_DEV_SERVER) {
