@@ -13,7 +13,7 @@ app.use(bodyParser.json())
 app.use(cors({
   // origin: 'https://polarityworks.github.io'
   //origin: 'http://localhost:8080'
-  origin: 'https://keymap.herokuapp.com'
+  origin: 'http://keymap.herokuapp.com'
 }))
 
 if (process.env.ENABLE_DEV_SERVER) {
