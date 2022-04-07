@@ -99,14 +99,14 @@ const getKeyboardFiles = async (req, res, next) => {
   const { branch } = req.query
 
   try {
-    const { info, keymap, macro } = await fetchKeyboardFiles(installationId, repository, branch)
+    const { info, keymap, macros } = await fetchKeyboardFiles(installationId, repository, branch)
     validateInfoJson(info)
     validateKeymapJson(keymap)
 
     res.json({
       info,
       keymap: parseKeymap(keymap),
-      macros: parseMacro(macro)
+      macros: parseMacro(macros)
     })
   } catch (err) {
     if (err instanceof MissingRepoFile) {

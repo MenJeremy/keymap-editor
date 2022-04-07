@@ -145,6 +145,7 @@ export default {
     :activeLayer="activeLayer"
     @select="activeLayer = $event"
     @new-layer="handleCreateLayer"
+    @delete-layer="handleDeleteLayer($event)"
   />
   <div :style="getWrapperStyle()" v-bind="$attrs">
     <keyboard-layout

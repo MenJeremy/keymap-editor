@@ -17,9 +17,9 @@ async function fetchKeyboardFiles (installationId, repository, branch) {
   const { data: { token: installationToken } } = await auth.createInstallationToken(installationId)
   const { data: info } = await fetchFile(installationToken, repository, 'config/info.json', { raw: true, branch })
   const keymap = await fetchKeymap(installationToken, repository, branch)
-  const macro = await fetchMacro(installationToken, repository, branch)
+  const macros = await fetchMacro(installationToken, repository, branch)
   const originalCodeKeymap = await findCodeKeymap(installationToken, repository, branch)
-  return { info, keymap, originalCodeKeymap }
+  return { info, keymap, macros, originalCodeKeymap }
 }
 
 async function fetchKeymap (installationToken, repository, branch) {
@@ -64,7 +64,11 @@ async function fetchFile (installationToken, repository, path, options = {}) {
     params.ref = branch
   }
 
-  const headers = { Accept: raw ? 'application/vnd.github.v3.raw' : 'application/json' }
+  var extension = "json";
+  if (path.lastIndexOf('.') > 0)
+    extension = path.substr((path.lastIndexOf('.') +1));
+
+  const headers = { Accept: raw ? 'application/vnd.github.v3.raw' : 'application/' + extension }
   try {
     return await api.request({ url, headers, params, token: installationToken })
   } catch (err) {

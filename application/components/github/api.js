@@ -108,7 +108,8 @@ export class API extends EventEmitter {
       const defaultLayout = data.info.layouts.default || data.info.layouts[Object.keys(data.info.layouts)[0]]
       return {
         layout: defaultLayout.layout,
-        keymap: data.keymap
+        keymap: data.keymap,
+        macros: data.macros
       }
     } catch (err) {
       if (err.response?.status === 400) {

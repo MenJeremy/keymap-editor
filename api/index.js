@@ -1,4 +1,4 @@
-require('dotenv/config')
+require('dotenv').config()
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
@@ -13,7 +13,7 @@ app.use(bodyParser.json())
 app.use(cors({
   // origin: 'https://polarityworks.github.io'
   //origin: 'http://localhost:8080'
-  origin: 'https://menjeremy.github.io'//'http://localhost'
+  origin: 'https://menjeremy.github.io'
 }))
 
 if (process.env.ENABLE_DEV_SERVER) {

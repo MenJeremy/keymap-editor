@@ -91,46 +91,46 @@ function parseMacro (macro) {
   const macroBindings = 'bindings';
   let lastMacro = null
 
-  macro.split(/\r?\n/).forEach(line =>  {
-    let text = String(line)
-    //Start of a Macro
-    if (text.includes("{"))
-    {
-      lastMacro = new Object()
-      let iStart = text.indexOf(macroPrefix)
-      let iEnd = text.indexOf(':')
-      lastMacro.key = text.substring(iStart + macroPrefix.length, iEnd).trim()
-      console.log(`Line from file: ${text}`)
-    }
-    else if (text.includes(macroLabel))
-    {
-      let iStart = text.indexOf('=')
-      let iEnd = text.indexOf(';')
-      lastMacro.label = text.substring(iStart + 1, iEnd).trim().replace(/"/g, "");
-    }
-    else if (text.includes(macroBindings))
-    {
-      let iStart = text.indexOf('=')
-      let iEnd = text.indexOf(';')
-      lastMacro.bindings = text.substring(iStart + 1, iEnd - 1)
-      lastMacro.bindingArray = lastMacro.bindings.split(", ")
-      lastMacro.textArray = [];
-      for (let i = 0; i < lastMacro.bindingArray.length; i++) {
-        var binding = parseKeyBinding(lastMacro.bindingArray[i].replace(/</g, "").replace(/>/g, "").trim())
-        if (binding && binding.params && binding.params !== null && binding.params.length > 0)
-        {
-          lastMacro.textArray.push(binding.params[0].value)
+  if (macro && macro.length > 0) {
+    macro.split(/\r?\n/).forEach(line =>  {
+      let text = String(line)
+      //Start of a Macro
+      if (text.includes("{"))
+      {
+        lastMacro = new Object()
+        let iStart = text.indexOf(macroPrefix)
+        let iEnd = text.indexOf(':')
+        lastMacro.key = text.substring(iStart + macroPrefix.length, iEnd).trim()
+      }
+      else if (text.includes(macroLabel))
+      {
+        let iStart = text.indexOf('=')
+        let iEnd = text.indexOf(';')
+        lastMacro.label = text.substring(iStart + 1, iEnd).trim().replace(/"/g, "");
+      }
+      else if (text.includes(macroBindings))
+      {
+        let iStart = text.indexOf('=')
+        let iEnd = text.indexOf(';')
+        lastMacro.bindings = text.substring(iStart + 1, iEnd - 1)
+        lastMacro.bindingArray = lastMacro.bindings.split(", ")
+        lastMacro.textArray = [];
+        for (let i = 0; i < lastMacro.bindingArray.length; i++) {
+          var binding = parseKeyBinding(lastMacro.bindingArray[i].replace(/</g, "").replace(/>/g, "").trim())
+          if (binding && binding.params && binding.params !== null && binding.params.length > 0)
+          {
+            lastMacro.textArray.push(binding.params[0].value)
+          }
         }
       }
-    }
 
-    //End of a Macro
-    if (text.includes("}"))
-    {
-      macroObj.push(lastMacro)
-    }
-  })
-
+      //End of a Macro
+      if (text.includes("}"))
+      {
+        macroObj.push(lastMacro)
+      }
+    })
+  }
   return macroObj;
 }
 
