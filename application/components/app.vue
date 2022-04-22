@@ -153,9 +153,9 @@ export default {
       </div>
     </template>
 
-    <a class="github-link" href="https://github.com/nickcoutsos/keymap-editor">
+    <!-- <a class="github-link" href="https://github.com/nickcoutsos/keymap-editor">
       <i class="fab fa-github" />/nickcoutsos/keymap-editor
-    </a>
+    </a> -->
   </initialize>
 </template>
 

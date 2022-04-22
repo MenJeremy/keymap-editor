@@ -36,8 +36,8 @@ module.exports = {
       ENABLE_LOCAL: true,
       ENABLE_GITHUB: true,
       GITHUB_APP_NAME: 'Adv360Pro',
-      API_BASE_URL: 'http://localhost:8080',// 'https://keymap.herokuapp.com',
-      APP_BASE_URL: 'http://localhost:8080' //'https://menjeremy.github.io/keymapapp'
+      API_BASE_URL: 'http://localhost:8080',// 'http://localhost:8080',// 'https://keymap.herokuapp.com',
+      APP_BASE_URL: 'http://localhost:8080'// 'http://localhost:8080' //'https://menjeremy.github.io/keymapapp'
     }),
     new HtmlWebpackPlugin({ template: 'index.html' }),
     new VueLoaderPlugin()
