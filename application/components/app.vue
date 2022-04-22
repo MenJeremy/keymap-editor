@@ -8,6 +8,7 @@ import Spinner from './spinner.vue'
 import * as config from '../config'
 import github from './github/api'
 import MacroDialog from './macro-dialog.vue'
+import Macro from './macro.vue'
 import Modal from './modal.vue'
 import pick from 'lodash/pick'
 
@@ -18,7 +19,8 @@ export default {
     Initialize,
     Spinner,
     Modal, 
-    MacroDialog
+    MacroDialog,
+    macro: Macro
   },
   data() {
     return {
@@ -99,6 +101,18 @@ export default {
         :keymap="editingKeymap.keyboard ? editingKeymap : keymap"
         @update="handleUpdateKeymap"
       />
+      <div v-if="macroEdit">
+        <macro :target="macroEdit.target"
+              :value="macroEdit.label"
+              :param="macroEdit.param"
+              :choices="macroEdit.targets"
+              :prompt="createPromptMessage(macroEdit.param)"
+              searchKey="label"
+              @select="handleSelectValue"
+              @cancel="macroEdit = null">
+          Macros...
+        </macro>
+      </div>
       <div id="actions">
         <button
           v-text="`Edit Macros`"
@@ -124,7 +138,7 @@ export default {
           <spinner v-if="saving" />
         </button>
        
-        <modal v-if="macroEdit">
+        <!-- <modal v-if="macroEdit">
           <macro-dialog
             :target="macroEdit.target"
             :value="macroEdit.label"
@@ -135,7 +149,7 @@ export default {
             @select="handleSelectValue"
             @cancel="macroEdit = null"
           />
-        </modal>
+        </modal> -->
       </div>
     </template>
 

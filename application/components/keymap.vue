@@ -21,6 +21,7 @@ export default {
   inject: [
     'keycodes',
     'behaviours',
+    'macros',
     'indexedKeycodes',
     'indexedBehaviours'
   ],
@@ -52,6 +53,7 @@ export default {
         kc: this.indexedKeycodes,
         code: this.indexedKeycodes,
         mod: keyBy(filter(this.keycodes, 'isModifier'), 'code'),
+        macros: this.macros,
         behaviours: this.indexedBehaviours,
         layer: keyBy(this.availableLayers, 'code')
       }
@@ -78,6 +80,8 @@ export default {
           return this.behaviours
         case 'layer':
           return this.availableLayers
+        case 'macro':
+          return this.macros
         case 'mod':
           return filter(this.keycodes, 'isModifier')
         case 'command':

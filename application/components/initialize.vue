@@ -1,7 +1,7 @@
 <script>
 import keyBy from 'lodash/keyBy'
 
-import { healthcheck, loadBehaviours } from '../api'
+import { healthcheck, loadBehaviours, loadMacros } from '../api'
 import { loadKeycodes } from '../keycodes'
 
 import Loader from './loader.vue'
@@ -12,6 +12,7 @@ export default {
   data () {
     return {
       keycodes: [],
+      macros: [],
       behaviours: [],
       indexedKeycodes: {},
       indexedBehaviours: {}
@@ -20,6 +21,7 @@ export default {
   provide() {
     return {
       keycodes: this.keycodes,
+      macros: this.macros,
       behaviours: this.behaviours,
       indexedKeycodes: this.indexedKeycodes,
       indexedBehaviours: this.indexedBehaviours
@@ -31,13 +33,15 @@ export default {
       await this.loadAppData()
     },
     async loadAppData () {
-      const [ keycodes, behaviours ] = await Promise.all([
+      const [ keycodes, behaviours, macros ] = await Promise.all([
         loadKeycodes(),
-        loadBehaviours()
+        loadBehaviours(),
+        loadMacros()
       ])
 
       this.keycodes.splice(0, this.keycodes.length, ...keycodes)
       this.behaviours.splice(0, this.behaviours.length, ...behaviours)
+      this.macros.splice(0, this.macros.length, ...macros)
       Object.assign(this.indexedKeycodes, keyBy(this.keycodes, 'code'))
       Object.assign(this.indexedBehaviours, keyBy(this.behaviours, 'code'))
     }

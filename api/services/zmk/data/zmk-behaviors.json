@@ -35,6 +35,11 @@
     "params": ["layer", "code"]
   },
   {
+    "code": "&macro",
+    "name": "Macro",
+    "params": ["macro"]
+  },
+  {
     "code": "&mo",
     "name": "Momentary Layer",
     "params": ["layer"]

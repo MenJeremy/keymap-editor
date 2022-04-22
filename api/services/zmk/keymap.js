@@ -100,7 +100,7 @@ function parseMacro (macro) {
         lastMacro = new Object()
         let iStart = text.indexOf(macroPrefix)
         let iEnd = text.indexOf(':')
-        lastMacro.key = text.substring(iStart + macroPrefix.length, iEnd).trim()
+        lastMacro.code = text.substring(iStart + macroPrefix.length, iEnd).trim()
       }
       else if (text.includes(macroLabel))
       {

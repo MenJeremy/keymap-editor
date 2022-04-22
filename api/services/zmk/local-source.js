@@ -47,7 +47,6 @@ function loadMacros () {
      ? fs.readFileSync(macroPath, {encoding:'utf8'})
      : EMPTY_MACRO
     
-     console.log('loadMacros: ' + macroContent);
   return parseMacro(macroContent)
 }
 
