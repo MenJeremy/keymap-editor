@@ -80,60 +80,6 @@ function parseKeymap (keymap) {
   return parse
 }
 
-function parseMacro (macro) {
-  // macroContent.split(/\r?\n/).forEach(line =>  {
-  //   console.log(`Line from file: ${line}`);
-  // });
-    
-  const macroObj = []
-  const macroPrefix = 'macro_';
-  const macroLabel = 'label';
-  const macroBindings = 'bindings';
-  let lastMacro = null
-
-  if (macro && macro.length > 0) {
-    macro.split(/\r?\n/).forEach(line =>  {
-      let text = String(line)
-      //Start of a Macro
-      if (text.includes("{"))
-      {
-        lastMacro = new Object()
-        let iStart = text.indexOf(macroPrefix)
-        let iEnd = text.indexOf(':')
-        lastMacro.code = text.substring(iStart + macroPrefix.length, iEnd).trim()
-      }
-      else if (text.includes(macroLabel))
-      {
-        let iStart = text.indexOf('=')
-        let iEnd = text.indexOf(';')
-        lastMacro.label = text.substring(iStart + 1, iEnd).trim().replace(/"/g, "");
-      }
-      else if (text.includes(macroBindings))
-      {
-        let iStart = text.indexOf('=')
-        let iEnd = text.indexOf(';')
-        lastMacro.bindings = text.substring(iStart + 1, iEnd - 1)
-        lastMacro.bindingArray = lastMacro.bindings.split(", ")
-        lastMacro.textArray = [];
-        for (let i = 0; i < lastMacro.bindingArray.length; i++) {
-          var binding = parseKeyBinding(lastMacro.bindingArray[i].replace(/</g, "").replace(/>/g, "").trim())
-          if (binding && binding.params && binding.params !== null && binding.params.length > 0)
-          {
-            lastMacro.textArray.push(binding.params[0].value)
-          }
-        }
-      }
-
-      //End of a Macro
-      if (text.includes("}"))
-      {
-        macroObj.push(lastMacro)
-      }
-    })
-  }
-  return macroObj;
-}
-
 function generateKeymap (layout, keymap, template) {
   const encoded = encodeKeymap(keymap)
   return {
@@ -237,7 +183,6 @@ module.exports = {
   KeymapValidationError,
   encodeKeymap,
   parseKeymap,
-  parseMacro,
   generateKeymap,
   validateKeymapJson
 }

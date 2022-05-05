@@ -45,7 +45,7 @@ export default {
     document.body.removeEventListener('click', this.handleClickOutside, true)
   },
   computed: {
-    macros() {
+    macro() {
       const { query, choices } = this
       const options = { key: this.searchKey, limit: 30 }
       const filtered = fuzzysort.go(query, choices, options)
@@ -92,18 +92,18 @@ export default {
       })
     },
     handleSelectActive() {
-      if (this.macros.length > 0 && this.highlighted !== null) {
-        this.handleClickResult(this.macros[this.highlighted])
+      if (this.macro.length > 0 && this.highlighted !== null) {
+        this.handleClickResult(this.macro[this.highlighted])
       }
     },
     handleHighlightNext() {
       //this.setHighlight(0, 1)
     },
     handleHighlightPrev() {
-      //this.setHighlight(this.macros.length - 1, -1)
+      //this.setHighlight(this.macro.length - 1, -1)
     },
     setHighlight(initial, offset) {
-      if (this.macros.length === 0) {
+      if (this.macro.length === 0) {
         this.highlighted = null
         return
       }
@@ -112,8 +112,8 @@ export default {
         return
       }
 
-      this.highlighted = this.highlighted === null ? initial : cycle(this.macros, this.highlighted, offset)
-      this.scrollIntoViewIfNeeded(this.$el.querySelector(`.macros li[data-result-index="${this.highlighted}`), false)
+      this.highlighted = this.highlighted === null ? initial : cycle(this.macro, this.highlighted, offset)
+      this.scrollIntoViewIfNeeded(this.$el.querySelector(`.macro li[data-result-index="${this.highlighted}`), false)
     },
     handleClickOutside(event) {
       if (!this.$el.contains(event.target)) {
@@ -154,13 +154,13 @@ export default {
       :value="query !== null ? query : value"
       @keypress="handleKeyPress"
     />
-    <ul class="macros">
+    <ul class="macro">
       <li
         :key="`result-${i}`"
         :class="{ highlighted: highlighted === i }"
         :title="result.label"
         :data-result-index="i"
-        v-for="(result, i) in macros"
+        v-for="(result, i) in macro"
         @click="handleClickResult(result); setHighlight(i);"
       >
         <span v-if="result.search" v-html="highlight(result.search)" />
@@ -168,7 +168,7 @@ export default {
       </li>
     </ul>
     <div>
-      <textarea v-model="selectedMacro" class="macrosText" disabled>  
+      <textarea v-model="selectedMacro" class="macroText" disabled>  
       </textarea>
     </div>
     <div
@@ -208,7 +208,7 @@ export default {
 	border-radius: 4px;
   box-sizing: border-box;
 }
-ul.macros {
+ul.macro {
 	font-family: monospace;
 	list-style-position: inside;
 	list-style-type: none;
@@ -219,16 +219,16 @@ ul.macros {
 	background: rgba(0, 0, 0, 0.8);
 	border-radius: 4px;
 }
-.macros li {
+.macro li {
 	cursor: pointer;
 	color: white;
 	padding: 5px;
 }
-.macros li:hover, .macros li.highlighted {
+.macro li:hover, .macro li.highlighted {
 	background: white;
 	color: black;
 }
-.macros li b { color: red; }
+.macro li b { color: red; }
 
 .choices-counter {
   font-size: 10px;
@@ -240,7 +240,7 @@ ul.macros {
   cursor: pointer;
 }
 
-.macrosText {
+.macroText {
   width: 100%;
   height: 200px;
 }

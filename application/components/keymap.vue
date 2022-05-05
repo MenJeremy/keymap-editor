@@ -16,12 +16,11 @@ export default {
     'layer-selector': LayerSelector,
     'keyboard-layout': KeyboardLayout
   },
-  props: ['layout', 'keymap'],
+  props: ['layout', 'keymap', 'macro'],
   emits: ['update'],
   inject: [
     'keycodes',
     'behaviours',
-    'macros',
     'indexedKeycodes',
     'indexedBehaviours'
   ],
@@ -53,7 +52,7 @@ export default {
         kc: this.indexedKeycodes,
         code: this.indexedKeycodes,
         mod: keyBy(filter(this.keycodes, 'isModifier'), 'code'),
-        macros: this.macros,
+        macro: this.macro,
         behaviours: this.indexedBehaviours,
         layer: keyBy(this.availableLayers, 'code')
       }
@@ -81,7 +80,7 @@ export default {
         case 'layer':
           return this.availableLayers
         case 'macro':
-          return this.macros
+          return this.macro
         case 'mod':
           return filter(this.keycodes, 'isModifier')
         case 'command':

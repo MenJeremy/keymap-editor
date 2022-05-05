@@ -8,6 +8,10 @@ export function loadKeycodes () {
   return api.loadKeycodes().then(normalizeZmkKeycodes)
 }
 
+export function loadMacro () {
+  return api.loadMacro()
+}
+
 function shortestAlias (aliases) {
   return [...aliases]
     .sort((a, b) => a.length - b.length)[0]

@@ -1,24 +1,31 @@
 const {
   parseKeyBinding,
-  generateKeymap
+  generateKeymap,
 } = require('./keymap')
+
+const {
+  generateMacro
+} = require('./macro')
 
 const {
   loadBehaviors,
   loadKeycodes,
   loadLayout,
   loadKeymap,
-  loadMacros,
-  exportKeymap
+  loadMacro,
+  exportKeymap,
+  exportMacro
 } = require('./local-source')
 
 module.exports = {
   parseKeyBinding,
   generateKeymap,
+  generateMacro,
   loadBehaviors,
   loadKeycodes,
   loadLayout,
   loadKeymap,
-  loadMacros,
-  exportKeymap
+  loadMacro,
+  exportKeymap,
+  exportMacro
 }

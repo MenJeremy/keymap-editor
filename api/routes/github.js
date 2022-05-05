@@ -14,7 +14,8 @@ const {
 } = require('../services/github')
 const { createInstallationToken } = require('../services/github/auth')
 const { MissingRepoFile, findCodeKeymap } = require('../services/github/files')
-const { parseKeymap, parseMacro, validateKeymapJson, KeymapValidationError } = require('../services/zmk/keymap')
+const { parseKeymap, validateKeymapJson, KeymapValidationError } = require('../services/zmk/keymap')
+const { parseMacro, validateMacroJson, MacroValidationError } = require('../services/zmk/macro')
 const { validateInfoJson, InfoValidationError } = require('../services/zmk/layout')
 
 const router = Router()
@@ -99,14 +100,15 @@ const getKeyboardFiles = async (req, res, next) => {
   const { branch } = req.query
 
   try {
-    const { info, keymap, macros } = await fetchKeyboardFiles(installationId, repository, branch)
+    const { info, keymap, macro } = await fetchKeyboardFiles(installationId, repository, branch)
     validateInfoJson(info)
     validateKeymapJson(keymap)
+    validateMacroJson(macro)
 
     res.json({
       info,
       keymap: parseKeymap(keymap),
-      macros: parseMacro(macros)
+      macro: parseMacro(macro)
     })
   } catch (err) {
     if (err instanceof MissingRepoFile) {
@@ -116,7 +118,7 @@ const getKeyboardFiles = async (req, res, next) => {
         path: err.path,
         errors: err.errors
       })
-    } else if (err instanceof InfoValidationError || err instanceof KeymapValidationError) {
+    } else if (err instanceof InfoValidationError || err instanceof KeymapValidationError || err instanceof MacroValidationError) {
       console.error(`Validation error in ${repository} (${branch}):`, err.constructor.name, err.errors)
       return res.status(400).json({
         name: err.name,
@@ -130,10 +132,10 @@ const getKeyboardFiles = async (req, res, next) => {
 
 const updateKeyboardFiles = async (req, res, next) => {
   const { installationId, repository, branch } = req.params
-  const { keymap, layout } = req.body
+  const { keymap, layout, macro } = req.body
 
   try {
-    await commitChanges(installationId, repository, branch, layout, keymap)
+    await commitChanges(installationId, repository, branch, layout, keymap, macro)
   } catch (err) {
     return next(err)
   }

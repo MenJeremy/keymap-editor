@@ -1,6 +1,6 @@
 import get from 'lodash/get'
 import keyBy from 'lodash/keyBy'
-export { loadKeymap } from './api'
+export { loadMacro } from './api'
 
 export function getBehaviourParams(parsedParams, behaviour) {
   const firstParsedParam = get(parsedParams, '[0]', {})

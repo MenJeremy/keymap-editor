@@ -36,18 +36,6 @@
         @cancel="editing = null"
       />
     </modal>
-    <modal v-if="macroEdit">
-      <macro-dialog
-        :target="macroEdit.target"
-        :value="macroEdit.label"
-        :param="macroEdit.param"
-        :choices="macroEdit.targets"
-        :prompt="createPromptMessage(macroEdit.param)"
-        searchKey="label"
-        @select="handleSelectValueMacro"
-        @cancel="macroEdit = null"
-      />
-    </modal>
   </div>
 </template>
 
@@ -64,7 +52,6 @@ import KeyValue from './key-value.vue'
 import KeyParamlist from './key-paramlist.vue'
 import Modal from './modal.vue'
 import ValuePicker from './value-picker.vue'
-import MacroDialog from './macro-dialog.vue'
 
 function makeIndex (tree) {
   const index = []
@@ -91,13 +78,11 @@ export default {
     'key-value': KeyValue,
     'key-paramlist': KeyParamlist,
     Modal,
-    ValuePicker,
-    MacroDialog
+    ValuePicker
   },
   data () {
     return {
       editing: null,
-      macroEdit: null
     }
   },
   inject: ['getSearchTargets', 'getSources'],
@@ -198,8 +183,6 @@ export default {
     handleSelectCode(event) {
       if (event && event.param == "macro")
       {
-        // this.macroEdit = pick(event, ['target', 'key', 'label', 'param'])
-        // this.macroEdit.targets = this.getSearchTargets(this.macroEdit.param, this.value)
         this.editing = pick(event, ['target', 'codeIndex', 'macro', 'param'])
         this.editing.isMacro = true;
         this.editing.targets = this.getSearchTargets(this.editing.param, this.value)
@@ -223,22 +206,6 @@ export default {
     handleSelectValue(source) {
       const { normalized } = this
       const { codeIndex } = this.editing
-      const updated = cloneDeep(normalized)
-      const index = makeIndex(updated)
-      const targetCode = index[codeIndex]
-
-      targetCode.value = source.code
-      targetCode.params = []
-      index.forEach(node => {
-        delete node.source
-      })
-
-      this.editing = null
-      this.$emit('update', pick(updated, ['value', 'params']))
-    },
-    handleSelectValueMacro(source) {
-      const { normalized } = this
-      const { codeIndex } = this.macroEdit
       const updated = cloneDeep(normalized)
       const index = makeIndex(updated)
       const targetCode = index[codeIndex]

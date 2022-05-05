@@ -1,7 +1,8 @@
 const childProcess = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const { parseKeymap, parseMacro } = require('./keymap')
+const { parseKeymap } = require('./keymap')
+const { parseMacro } = require('./macro')
 
 const ZMK_PATH = path.join(__dirname, '..', '..', '..', 'zmk-config')
 const KEYBOARD = 'dactyl'
@@ -41,7 +42,7 @@ function loadKeymap () {
   return keymap
 }
 
-function loadMacros () {
+function loadMacro () {
   const macroPath = path.join(ZMK_PATH, 'config', 'macros.dtsi')
   const macroContent = fs.existsSync(macroPath)
      ? fs.readFileSync(macroPath, {encoding:'utf8'})
@@ -71,11 +72,26 @@ function exportKeymap (generatedKeymap, flash, callback) {
   return childProcess.execFile('git', ['status'], { cwd: ZMK_PATH }, callback)
 }
 
+function exportMacro(macroJSON, flash, callback) {
+  const macroPath = path.join(ZMK_PATH, 'config')
+
+  fs.existsSync(macroPath) || fs.mkdirSync(macroPath)
+  fs.writeFileSync(path.join(macroPath, 'macros.dtsi'), macroJSON)
+
+  // Note: This isn't really helpful. In the QMK version I had this actually
+  // calling `make` and piping the output in realtime but setting up a ZMK dev
+  // environment proved to be more complex than I had patience for, so for now
+  // I'm writing changes to a zmk-config repo and counting on the predefined
+  // GitHub action to actually compile.
+  return childProcess.execFile('git', ['status'], { cwd: ZMK_PATH }, callback)
+}
+
 module.exports = {
   loadBehaviors,
   loadKeycodes,
   loadLayout,
   loadKeymap,
-  loadMacros,
-  exportKeymap
+  exportKeymap,
+  loadMacro,
+  exportMacro
 }

@@ -7,16 +7,36 @@ import times from 'lodash/times'
 import fuzzysort from 'fuzzysort'
 import { getKeyStyles } from '../key-units'
 
+import { getBehaviourParams } from '../keymap'
 import { getKeyBoundingBox } from '../key-units'
+import KeyValue from './key-value.vue'
+import KeyParamlist from './key-paramlist.vue'
+import Modal from './modal.vue'
+import ValuePicker from './value-picker.vue'
+import pick from 'lodash/pick'
+import cloneDeep from 'lodash/cloneDeep'
 
+function makeIndex (tree) {
+  const index = []
+  ;(function traverse(tree) {
+    const params = tree.params || []
+    index.push(tree)
+    params.forEach(traverse)
+  })(tree)
+
+  return index
+}
 export default {
   name: 'macro',
   components: {
+    Modal,
+    ValuePicker
   },
   props: {
     target: Object,
     choices: Array,
     param: [String, Object],
+    params: Object,
     value: String,
     prompt: String,
     searchKey: String,
@@ -30,17 +50,16 @@ export default {
       validator: value => value >= 0
     }
   },
-  emits: ['cancel', 'update'],
+  emits: ['cancel', 'done'],
   inject: [
     'keycodes',
     'behaviours',
     'indexedKeycodes',
-    'indexedBehaviours'
+    'indexedBehaviours',
   ],
   provide() {
     return {
-      getSearchTargets: this.getSearchTargets,
-      getSources: () => this.sources
+
     }
   },
   data() {
@@ -48,34 +67,45 @@ export default {
       query: null,
       highlighted: null,
       showAll: false,
-      selectedMacro: {},
-      editing: null
+      selectedMacro: null,
+      selectedIdx: -1,
+      editing: null,
+      editingMacro: false,
+      saving: false
     }
   },
 mounted() {
     document.body.addEventListener('click', this.handleClickOutside, true)
-  },
-  unmounted() {
-    document.body.removeEventListener('click', this.handleClickOutside, true)
-  },
-  computed: {
-    macros() {
-      const { query, choices } = this
-      const options = { key: this.searchKey, limit: 30 }
-      const filtered = fuzzysort.go(query, choices, options)
-      const showAll = this.showAll || this.searchThreshold > choices.length
+},
+unmounted() {
+  document.body.removeEventListener('click', this.handleClickOutside, true)
+},
+computed: {
+  macro() {
+    const { query, choices } = this
+    const options = { key: this.searchKey, limit: 30 }
+    const filtered = fuzzysort.go(query, choices, options)
+    const showAll = this.showAll || this.searchThreshold > choices.length
 
-      if (showAll) {
-        return choices
-      } else if (!query) {
-        return choices.slice(0, this.searchThreshold)
-      }
+    if (showAll) {
+      return choices
+    } else if (!query) {
+      return choices.slice(0, this.searchThreshold)
+    }
 
-      return filtered.map(result => ({
-        ...result.obj,
-        search: result
-      }))
+    return filtered.map(result => ({
+      ...result.obj,
+      search: result
+    }))
   },
+  // behaviour() {
+  //   const bind = this.value
+  //   const sources = this.getSources()
+  //   return get(sources, ['behaviours', bind])
+  // },
+  // behaviourParams() {
+  //   return getBehaviourParams(this.params, this.behaviour)
+  // },
   enableShowAllButton() {
       return (
         !this.showAll &&
@@ -93,17 +123,30 @@ mounted() {
     }
   },
   methods: {
+    getSources() {
+      return {
+        kc: this.indexedKeycodes,
+        code: this.indexedKeycodes,
+        mod: keyBy(filter(this.keycodes, 'isModifier'), 'code'),
+        macro: this.macro,
+        behaviours: this.indexedBehaviours,
+        layer: keyBy(this.availableLayers, 'code')
+      }
+    },
     isReady() {
       return (
-        Object.keys(this.macros).length > 0
+        Object.keys(this.macro).length > 0
       )
     },
     highlightMacro(result) {
       return fuzzysort.highlight(result)
     },
-    handleClickResult(result) {
-      //this.$emit('select', result)
-      this.selectedMacro = result;//.textArray.toString()
+    handleClickResult(result, idx) {
+      //Update selected macro
+      //this.updateMacro()
+
+      this.selectedMacro = result //cloneDeep(result)//.textArray.toString()
+      this.selectedIdx = idx; 
     },
     handleKeyPress(event) {
       setTimeout(() => {
@@ -111,18 +154,18 @@ mounted() {
       })
     },
     handleSelectActive() {
-      if (this.macros.length > 0 && this.highlighted !== null) {
-        this.handleClickResult(this.macros[this.highlighted])
+      if (this.macro.length > 0 && this.highlighted !== null) {
+        this.handleClickResult(this.macro[this.highlighted])
       }
     },
     handleHighlightNext() {
       //this.setHighlight(0, 1)
     },
     handleHighlightPrev() {
-      //this.setHighlight(this.macros.length - 1, -1)
+      //this.setHighlight(this.macro.length - 1, -1)
     },
     setHighlight(initial, offset) {
-      if (this.macros.length === 0) {
+      if (this.macro.length === 0) {
         this.highlighted = null
         return
       }
@@ -131,17 +174,28 @@ mounted() {
         return
       }
 
-      this.highlighted = this.highlighted === null ? initial : cycle(this.macros, this.highlighted, offset)
-      this.scrollIntoViewIfNeeded(this.$el.querySelector(`.macros li[data-result-index="${this.highlighted}`), false)
+      this.highlighted = this.highlighted === null ? initial : cycle(this.macro, this.highlighted, offset)
+      this.scrollIntoViewIfNeeded(this.$el.querySelector(`.macro li[data-result-index="${this.highlighted}`), false)
     },
     handleClickOutside(event) {
-      if (!this.$el.contains(event.target)) {
-        this.cancel()
-      }
+      // if (!this.$el.contains(event.target)) {
+      //   this.cancel()
+      // }
     },
-    cancel() {
-      this.$emit('cancel', 'select')
-    },
+    // acceptMacro() {
+    //   //this.$emit('done')
+    //   this.updateMacro()
+    //   this.$emit('done')
+    // },
+    // cancelMacro() {
+    //   this.$emit('cancel', 'done')
+    // },
+    // updateMacro() {
+    //   if (this.selectedMacro !== null)
+    //   {
+    //     this.macro[this.selectedIdx] = this.selectedMacro
+    //   }
+    // },
     scrollIntoViewIfNeeded (element, alignToTop) {
       const scroll = element.offsetParent.scrollTop
       const height = element.offsetParent.offsetHeight
@@ -166,7 +220,7 @@ mounted() {
         case 'layer':
           return this.availableLayers
         case 'macro':
-          return this.macros
+          return this.macro
         case 'mod':
           return filter(this.keycodes, 'isModifier')
         case 'command':
@@ -195,7 +249,7 @@ mounted() {
         padding: '40px'
       }
     },
-    handleUpdateMacros() {
+    handleUpdateMacro() {
     //   const original = this.keymap.layers
     //   const layers = [
     //     ...original.slice(0, layerIndex),
@@ -237,73 +291,213 @@ mounted() {
     onMouseLeave(event) {
       event.target.classList.remove('highlight')
     },
+    addNewMacro(event) {
+
+    },
+    addKey(event) {
+      const newObject = {};
+      newObject.target = this.$refs.items;//event.target;
+      newObject.codeIndex = 1;
+      newObject.param = 'code';
+
+      this.editing = pick(newObject,  ['target', 'codeIndex', 'code', 'param'])
+      this.editing.isMacro = false;
+      this.editing.targets = this.getSearchTargets(this.editing.param, this.value)
+    },
+    createPromptMessage(param) {
+      const promptMapping = {
+        layer: 'Select layer',
+        mod: 'Select modifier',
+        behaviour: 'Select behaviour',
+        command: 'Select command',
+        keycode: 'Select key code'
+      }
+
+      if (param.name) {
+        return `Select ${param.name}`
+      }
+
+      return promptMapping[param] || promptMapping.keycode
+    },
+    handleSelectKey(source) {
+      // const { normalized } = this
+      const { codeIndex } = this.editing
+      const updated = cloneDeep(this.normalized('&kp', source.params))
+      const index = makeIndex(updated)
+      const targetCode = index[codeIndex]
+
+      targetCode.value = source.code
+      targetCode.params = []
+      index.forEach(node => {
+        delete node.source
+      })
+      //this.normalize(source, 'code')
+
+      this.selectedMacro.textArray.push(source.code)
+      this.selectedMacro.keys.push(updated)
+
+      this.editing = null
+    },
+    deleteKey(idx) {
+      this.selectedMacro.textArray.splice(idx, 1)
+      this.selectedMacro.keys.splice(idx, 1)
+    },
+    getSourceValue(value, as) {
+      if (as === 'command') return commands[value]
+      if (as === 'raw' || as.enum) return { code: value }
+      if (as === 'macro') return { code: value }
+      const sources = this.getSources()
+
+      return sources[as][value]
+    },
+    normalize(node, as) {
+      if (!node) {
+        return { value: undefined, params: [] }
+      }
+      const { value, params } = node
+      const source = this.getSourceValue(value, as)
+
+      return {
+        value,
+        source,
+        params: get(source, 'params', []).map((as, i) => (
+         this.normalize(params[i], as)
+        ))
+      }
+    },
+    normalized(value, params) {
+        //const commands = keyBy(this.behaviour.commands, 'code')
+
+      return {
+        value,
+        source: this.behaviour(value),
+        params: this.behaviourParams(value, this.behaviour(value)).map((as, i) => (
+          this.normalize(params[i], as)
+        ))
+      }
+    },
+    behaviour(value) {
+      const bind = value
+      const sources = this.getSources()
+      return get(sources, ['behaviours', bind])
+    },
+    behaviourParams(params, behaviour) {
+      return getBehaviourParams(params, behaviour)
+    },
   }
 }
 </script>
 
 <template>
-  <div id="editMacros">
+  <div id="editMacro">
+    <span>
+      Macros
+    </span>
+    <button
+      @click="addNewMacro"
+      :disabled="this.editingMacro"
+      title="Add a new macro">
+      Add macro
+    </button>
     <div class="container">
-    <div id="macroList">
-        <ul class="macros">
-            <li
-                :key="`result-${i}`"
-                :class="{ highlighted: highlighted === i }"
-                :title="result.label"
-                :data-result-index="i"
-                v-for="(result, i) in macros"
-                @click="handleClickResult(result); setHighlight(i);"
-            >
-                <span v-if="result.search" v-html="highlight(result.search)" />
-                <span v-else v-text="result[searchKey]" />
-            </li>
-        </ul>
-    </div>
-    <div id="macroItems">
-        <div v-for="(item, i) in selectedMacro.textArray" 
-            :key="`item-key-${i}`"
-            class="keyMacro"
-            :class="[uClass, hClass]"
-            :data-label="item"
-            :data-u="size.u"
-            :data-h="size.h"
-            :data-simple="true"
-            :data-long="false"
-            :style="positioningStyle"
-            @mouseover="onMouseOver"
-            @mouseleave="onMouseLeave"
-            >
-            <span v-text="item" />
-        </div>
-        <!-- <ul>
-            <li
+      <div id="macroList">
+          <ul class="macro">
+              <li
+                  :key="`result-${i}`"
+                  :class="{ highlighted: highlighted === i }"
+                  :title="result.label"
+                  :data-result-index="i"
+                  v-for="(result, i) in macro"
+                  @click="handleClickResult(result, i); setHighlight(i);">
+                  <span v-if="result.search" v-html="highlight(result.search)" />
+                  <span v-else v-text="result[searchKey]" />
+              </li>
+          </ul>
+      </div>
+      <div id="macroItems" ref="items">
+          <div v-if="selectedMacro" id="macroContainer">
+            <div v-for="(item, i) in selectedMacro.textArray" 
                 :key="`item-key-${i}`"
-                :class="{ highlighted: highlighted === i }"
-                :title="item"
-                :data-item-index="i"
-                v-for="(item, i) in selectedMacro.textArray"              
-            >
-                <span v-text="item" class="key"
-                    :class="[uClass, hClass]"
-                    :data-label="item"
-                    :data-u="size.u"
-                    :data-h="size.h"
-                    :data-simple="isSimple"
-                    :data-long="isComplex"
-                    :style="positioningStyle"
-                    />
-            </li>
-        </ul> -->
-      <!-- <textarea v-model="selectedMacro" class="macrosText" disabled>  
-      </textarea> -->
+                class="keyMacro"
+                :class="[uClass, hClass]"
+                :data-label="item"
+                :data-u="size.u"
+                :data-h="size.h"
+                :data-simple="item.length < 4"
+                :data-long="item.length >= 4"
+                :style="positioningStyle"
+                @mouseover="onMouseOver"
+                @mouseleave="onMouseLeave"
+                >
+                <span class="close" @click="deleteKey(i)">X</span>
+                <!-- <span v-text="item" class="macroText"/> -->
+                <span>
+                  <span
+                    class="code"
+                    v-text="item">
+                  </span>
+                </span>
+            </div>
+          </div>
+          <!-- <ul>
+              <li
+                  :key="`item-key-${i}`"
+                  :class="{ highlighted: highlighted === i }"
+                  :title="item"
+                  :data-item-index="i"
+                  v-for="(item, i) in selectedMacro.textArray"              
+              >
+                  <span v-text="item" class="key"
+                      :class="[uClass, hClass]"
+                      :data-label="item"
+                      :data-u="size.u"
+                      :data-h="size.h"
+                      :data-simple="isSimple"
+                      :data-long="isComplex"
+                      :style="positioningStyle"
+                      />
+              </li>
+          </ul> -->
+        <!-- <textarea v-model="selectedMacro" class="macroText" disabled>  
+        </textarea> -->
+      </div>
+      <div class="macroActions">
+        <button
+          @click="addKey"
+          :disabled="this.selectedMacro == null"
+          title="Add new key">
+          Add key
+        </button>
+        <!-- <button
+          @click="acceptMacro"
+          title="Done">
+          Done
+        </button>
+        <button
+          @click="cancelMacro"
+          title="Cancel">
+          Cancel
+        </button> -->
+      </div>
     </div>
-    </div>
+    <modal v-if="editing">
+      <value-picker
+        :target="editing.target"
+        :value="editing.code"
+        :param="editing.param"
+        :choices="editing.targets"
+        :prompt="createPromptMessage(editing.param)"
+        searchKey="code"
+        @select="handleSelectKey"
+        @cancel="editing = null"
+      />
+    </modal>
   </div>
 </template>
 
 <style scoped>
 
-#editMacros {
+#editMacro {
   margin: 20px;
   width: 80%;
 }
@@ -321,6 +515,9 @@ mounted() {
     border: black solid 1px;
     border-radius: 10px;
 }
+#macroContainer {
+  display: flex;
+}
 .dialog input {
 	display: block;
 	width: 100%;
@@ -334,7 +531,7 @@ mounted() {
 	border-radius: 4px;
   box-sizing: border-box;
 }
-ul.macros {
+ul.macro {
 	font-family: monospace;
 	list-style-position: inside;
 	list-style-type: none;
@@ -345,16 +542,16 @@ ul.macros {
 	background: rgba(0, 0, 0, 0.8);
 	border-radius: 4px;
 }
-.macros li {
+.macro li {
 	cursor: pointer;
 	color: white;
 	padding: 5px;
 }
-.macros li:hover, .macros li.highlighted {
+.macro li:hover, .macro li.highlighted {
 	background: white;
 	color: black;
 }
-.macros li b { color: red; }
+.macro li b { color: red; }
 
 .choices-counter {
   font-size: 10px;
@@ -366,15 +563,15 @@ ul.macros {
   cursor: pointer;
 }
 
-.macrosText {
+.macroText {
   width: 100%;
   height: 200px;
 }
 .keyMacro {
-	float: left;
-    margin-right: 5px;
-    height: 50px;
-    width: 50px;
+	position: relative;
+  margin-right: 5px;
+  height: 50px;
+  width: 50px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -383,11 +580,12 @@ ul.macros {
 	background-color: whitesmoke;
 	font-size: 110%;
 	border-radius: 5px;
+  z-index: 9998;
 }
 .keyMacro:hover {
 	background-color: var(--hover-selection);
 	transition: 200ms;
-	z-index: 1;
+
 }
 .keyMacro:hover .code, .key:hover .behaviour-binding {
 	color: white;
@@ -398,4 +596,57 @@ ul.macros {
 
 .keyMacro[data-simple="true"] { font-size: 100%; }
 .keyMacro[data-long="true"] { font-size: 60%; }
+
+button {
+  cursor: pointer;
+  background-color: var(--hover-selection);
+  color: white;
+
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 2px;
+}
+
+button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.close {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  z-index:9999;
+  font-size: 10px;
+  font-weight: bold;
+  transition: 0.3s;
+  border: 1px solid;
+  border-radius: 50%;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+/* Change cursor when pointing on button */
+.close:hover,
+.close:focus {
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #ffffff;
+}
+
+.code {
+	cursor: pointer;
+	display: inline-block;
+	box-sizing: content-box;
+	min-width: 0.5em;
+	text-align: center;
+	border-radius: 4px;
+}
+.code.highlight {
+	background-color: white !important;
+	color: var(--hover-selection) !important;
+}
+
 </style>

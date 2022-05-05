@@ -29,7 +29,7 @@ export default {
       sourceOther: null,
       layout: [],
       keymap: {},
-      macros: [],
+      macro: [],
       editingKeymap: {},
       saving: false,
       terminalOpen: false,
@@ -38,12 +38,12 @@ export default {
     }
   },
   methods: {
-    handleKeyboardSelected({ source, layout, keymap, macros, ...other }) {
+    handleKeyboardSelected({ source, layout, keymap, macro, ...other }) {
       this.source = source
       this.sourceOther = other
       this.layout.splice(0, this.layout.length, ...layout)
       Object.assign(this.keymap, keymap)
-      Object.assign(this.macros, macros)
+      Object.assign(this.macro, macro)
       this.editingKeymap = {}
     },
     handleUpdateKeymap(keymap) {
@@ -53,7 +53,7 @@ export default {
       const { repository, branch } = this.sourceOther.github
 
       this.saving = true
-      await github.commitChanges(repository, branch, this.layout, this.editingKeymap)
+      await github.commitChanges(repository, branch, this.layout, this.editingKeymap, this.macro)
       this.saving = false
       Object.assign(this.keymap, this.editingKeymap)
       this.editingKeymap = {}
@@ -66,10 +66,26 @@ export default {
         },
         body: JSON.stringify(this.editingKeymap)
       })
+
+      fetch('/macro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(this.macro)
+      })
     },
-    openMacroList(event) {
-      this.macroEdit = pick(event, ['target', 'key', 'label', 'param'])
-      this.macroEdit.targets = this.macros
+    openCloseMacroList(event) {
+      if (this.macroEdit == null)
+      {
+        this.macroEdit = pick(event, ['target', 'key', 'label', 'param'])
+        this.macroEdit.targets = this.macro
+      }
+      else
+        this.macroEdit = null
+    },
+    handleAcceptMacro() {
+      this.macroEdit = null
     },
     createPromptMessage(param) {
       const promptMapping = {
@@ -99,6 +115,7 @@ export default {
       <keymap
         :layout="layout"
         :keymap="editingKeymap.keyboard ? editingKeymap : keymap"
+        :macro="macro"
         @update="handleUpdateKeymap"
       />
       <div v-if="macroEdit">
@@ -108,17 +125,17 @@ export default {
               :choices="macroEdit.targets"
               :prompt="createPromptMessage(macroEdit.param)"
               searchKey="label"
-              @select="handleSelectValue"
+              @done="handleAcceptMacro"
               @cancel="macroEdit = null">
-          Macros...
         </macro>
       </div>
       <div id="actions">
         <button
-          v-text="`Edit Macros`"
           id="macroList"
-          @click="openMacroList"
-        />
+          @click="openCloseMacroList">
+          <template v-if="macroEdit === null">Edit Macros </template>
+          <template v-else>Close Macros</template>
+        </button>
         <button
           v-if="source === 'local'"
           v-text="`Save Local`"
@@ -137,25 +154,9 @@ export default {
           <template v-else>Commit Changes</template>
           <spinner v-if="saving" />
         </button>
-       
-        <!-- <modal v-if="macroEdit">
-          <macro-dialog
-            :target="macroEdit.target"
-            :value="macroEdit.label"
-            :param="macroEdit.param"
-            :choices="macroEdit.targets"
-            :prompt="createPromptMessage(macroEdit.param)"
-            searchKey="label"
-            @select="handleSelectValue"
-            @cancel="macroEdit = null"
-          />
-        </modal> -->
       </div>
     </template>
 
-    <!-- <a class="github-link" href="https://github.com/nickcoutsos/keymap-editor">
-      <i class="fab fa-github" />/nickcoutsos/keymap-editor
-    </a> -->
   </initialize>
 </template>
 

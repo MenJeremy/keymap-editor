@@ -17,8 +17,8 @@ export function loadKeymap() {
     .then(response => response.json())
 }
 
-export function loadMacros() {
-  return fetch(`${config.apiBaseUrl}/macros`)
+export function loadMacro() {
+  return fetch(`${config.apiBaseUrl}/macro`)
     .then(response => response.json())
 }
 
