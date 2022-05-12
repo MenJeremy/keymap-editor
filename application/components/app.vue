@@ -34,7 +34,8 @@ export default {
       saving: false,
       terminalOpen: false,
       socket: null,
-      macroEdit: null
+      macroEdit: null,
+      macroUpdated: false
     }
   },
   methods: {
@@ -52,13 +53,20 @@ export default {
     async handleCommitChanges() {
       const { repository, branch } = this.sourceOther.github
 
+      if (!this.editingKeymap || !this.editingKeymap.keyboard)
+        Object.assign(this.editingKeymap, this.keymap)
+
       this.saving = true
       await github.commitChanges(repository, branch, this.layout, this.editingKeymap, this.macro)
       this.saving = false
       Object.assign(this.keymap, this.editingKeymap)
       this.editingKeymap = {}
+      this.macroUpdated = false
     },
-    handleCompile() {
+    handleCompile() {    
+      if (!this.editingKeymap || !this.editingKeymap.keyboard)
+        Object.assign(this.editingKeymap, this.keymap)
+
       fetch('/keymap', {
         method: 'POST',
         headers: {
@@ -74,6 +82,10 @@ export default {
         },
         body: JSON.stringify(this.macro)
       })
+
+      Object.assign(this.keymap, this.editingKeymap)
+      this.editingKeymap = {}
+      this.macroUpdated = false
     },
     openCloseMacroList(event) {
       if (this.macroEdit == null)
@@ -82,10 +94,15 @@ export default {
         this.macroEdit.targets = this.macro
       }
       else
+      {
         this.macroEdit = null
+      }
     },
     handleAcceptMacro() {
       this.macroEdit = null
+    },
+    handleMacroUpdate() {
+      this.macroUpdated = true;
     },
     createPromptMessage(param) {
       const promptMapping = {
@@ -125,6 +142,7 @@ export default {
               :choices="macroEdit.targets"
               :prompt="createPromptMessage(macroEdit.param)"
               searchKey="label"
+              @macroupdate="handleMacroUpdate"
               @done="handleAcceptMacro"
               @cancel="macroEdit = null">
         </macro>
@@ -140,14 +158,14 @@ export default {
           v-if="source === 'local'"
           v-text="`Save Local`"
           id="compile"
-          :disabled="!this.editingKeymap.keyboard"
+          :disabled="!this.editingKeymap.keyboard && (!this.macroUpdated || this.macroEdit)"
           @click="handleCompile"
         />
 
         <button
           v-if="source === 'github'"
           @click="handleCommitChanges"
-          :disabled="!this.editingKeymap.keyboard"
+          :disabled="!this.editingKeymap.keyboard && (!this.macroUpdated || this.macroEdit)"
           title="Commit keymap changes to GitHub repository"
         >
           <template v-if="saving">Saving </template>

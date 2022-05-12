@@ -13,6 +13,7 @@ import KeyValue from './key-value.vue'
 import KeyParamlist from './key-paramlist.vue'
 import Modal from './modal.vue'
 import ValuePicker from './value-picker.vue'
+import InputDialog from './input-dialog.vue'
 import pick from 'lodash/pick'
 import cloneDeep from 'lodash/cloneDeep'
 
@@ -28,9 +29,11 @@ function makeIndex (tree) {
 }
 export default {
   name: 'macro',
+  emits: ['macroupdate'],
   components: {
     Modal,
-    ValuePicker
+    ValuePicker,
+    InputDialog
   },
   props: {
     target: Object,
@@ -71,7 +74,8 @@ export default {
       selectedIdx: -1,
       editing: null,
       editingMacro: false,
-      saving: false
+      saving: false,
+      addMacro: false
     }
   },
 mounted() {
@@ -292,7 +296,7 @@ computed: {
       event.target.classList.remove('highlight')
     },
     addNewMacro(event) {
-
+      this.addMacro = true
     },
     addKey(event) {
       const newObject = {};
@@ -337,10 +341,14 @@ computed: {
       this.selectedMacro.keys.push(updated)
 
       this.editing = null
+
+      this.$emit('macroupdate')
     },
     deleteKey(idx) {
       this.selectedMacro.textArray.splice(idx, 1)
       this.selectedMacro.keys.splice(idx, 1)
+
+      this.$emit('macroupdate')
     },
     getSourceValue(value, as) {
       if (as === 'command') return commands[value]
@@ -384,6 +392,28 @@ computed: {
     behaviourParams(params, behaviour) {
       return getBehaviourParams(params, behaviour)
     },
+    handleAddMacro(macroName) {
+      var exists = false
+
+      this.macro.filter(function(value) {
+        if (value.code.toLowerCase() == macroName.toLowerCase()) {
+          alert('This macro name already exists')
+          exists = true;
+        }
+      })
+
+      if (!exists)
+      {
+        var newMacro = {}
+        newMacro.code = macroName.toLowerCase()
+        newMacro.label = "macro_" + newMacro.code
+        newMacro.keys = [];
+        newMacro.textArray = [];
+        this.macro.unshift(newMacro)
+
+        this.addMacro = false
+      }
+    }
   }
 }
 </script>
@@ -490,6 +520,12 @@ computed: {
         searchKey="code"
         @select="handleSelectKey"
         @cancel="editing = null"
+      />
+    </modal>
+    <modal v-if="addMacro">
+      <input-dialog
+        @accept="handleAddMacro"
+        @cancel="addMacro = false"
       />
     </modal>
   </div>
