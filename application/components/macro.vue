@@ -349,8 +349,8 @@ computed: {
 
       if (this.editing.insertIdx >= 0)
       {
-        this.selectedMacro.textArray.splice(this.editing.insertId, 0, source.code)
-        this.selectedMacro.keys.splice(this.editing.insertId, 0, updated)
+        this.selectedMacro.textArray.splice(this.editing.insertIdx, 0, source.code)
+        this.selectedMacro.keys.splice(this.editing.insertIdx, 0, updated)
       }
       else
       {
