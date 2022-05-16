@@ -300,12 +300,22 @@ computed: {
     },
     addKey(event) {
       const newObject = {};
-      newObject.target = this.$refs.items;//event.target;
+      newObject.target = this.$refs.items;
       newObject.codeIndex = 1;
       newObject.param = 'code';
 
       this.editing = pick(newObject,  ['target', 'codeIndex', 'code', 'param'])
-      this.editing.isMacro = false;
+      this.editing.insertIdx = -1
+      this.editing.targets = this.getSearchTargets(this.editing.param, this.value)
+    },
+    insertKey(idx) {
+      const newObject = {};
+      newObject.target = this.$refs.items;
+      newObject.codeIndex = 1;
+      newObject.param = 'code';
+
+      this.editing = pick(newObject,  ['target', 'codeIndex', 'code', 'param'])
+      this.editing.insertIdx = idx
       this.editing.targets = this.getSearchTargets(this.editing.param, this.value)
     },
     createPromptMessage(param) {
@@ -337,8 +347,16 @@ computed: {
       })
       //this.normalize(source, 'code')
 
-      this.selectedMacro.textArray.push(source.code)
-      this.selectedMacro.keys.push(updated)
+      if (this.editing.insertIdx >= 0)
+      {
+        this.selectedMacro.textArray.splice(this.editing.insertId, 0, source.code)
+        this.selectedMacro.keys.splice(this.editing.insertId, 0, updated)
+      }
+      else
+      {
+        this.selectedMacro.textArray.push(source.code)
+        this.selectedMacro.keys.push(updated)
+      }
 
       this.editing = null
 
@@ -446,9 +464,9 @@ computed: {
       </div>
       <div id="macroItems" ref="items">
           <div v-if="selectedMacro" id="macroContainer">
-            <div v-for="(item, i) in selectedMacro.textArray" 
-                :key="`item-key-${i}`"
-                class="keyMacro"
+          <div v-for="(item, i) in selectedMacro.textArray" :key="`item-key-${i}`" class="macroKeyContainer">
+            <span class="insertKey" @click="insertKey(i)" title="Insert key here"> + </span>
+            <div class="keyMacro"
                 :class="[uClass, hClass]"
                 :data-label="item"
                 :data-u="size.u"
@@ -467,6 +485,9 @@ computed: {
                     v-text="item">
                   </span>
                 </span>
+                
+                </div>
+
             </div>
           </div>
           <!-- <ul>
@@ -603,6 +624,9 @@ ul.macro {
   width: 100%;
   height: 200px;
 }
+.macroKeyContainer {
+  display: flex;
+}
 .keyMacro {
 	position: relative;
   margin-right: 5px;
@@ -621,7 +645,6 @@ ul.macro {
 .keyMacro:hover {
 	background-color: var(--hover-selection);
 	transition: 200ms;
-
 }
 .keyMacro:hover .code, .key:hover .behaviour-binding {
 	color: white;
@@ -683,6 +706,29 @@ button[disabled] {
 .code.highlight {
 	background-color: white !important;
 	color: var(--hover-selection) !important;
+}
+
+.insertKey {
+  position: relative;
+  top: 15px;
+  height: 15px;
+  margin-right: 5px;
+  font-size: 15px;
+  transition: 0.3s;
+  border: 1px solid;
+  border-radius: 50%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-bottom: 4px;
+}
+
+/* Change cursor when pointing on button */
+.insertKey:hover,
+.insertKey:focus {
+    text-decoration: none;
+    cursor: pointer;
+    color: white;
+    background-color: var(--hover-selection);
 }
 
 </style>
